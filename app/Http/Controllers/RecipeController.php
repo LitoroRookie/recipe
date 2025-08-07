@@ -9,58 +9,54 @@ use Illuminate\Support\Facades\Storage;
 
 class RecipeController extends Controller
 {
-    // 顯示目前使用者的所有配方
     public function index()
     {
         $recipes = Recipe::where('user_id', Auth::id())->latest()->paginate(10);
         return view('recipes.index', compact('recipes'));
     }
 
-    // 顯示新增配方表單
     public function create()
     {
         return view('recipes.create');
     }
 
-    // 儲存新配方
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048', // 限制圖片最大2MB
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
         ]);
 
-        $path = null;
+        $imagePath = null;
+
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('recipes', 'public');
+            $imagePath = $request->file('image')->store('recipes', 'public'); // 儲存在 storage/app/public/recipes
         }
 
         Recipe::create([
             'title' => $request->title,
             'description' => $request->description,
             'user_id' => Auth::id(),
-            'image_path' => $path,
+            'image_path' => $imagePath,
         ]);
 
-        return redirect()->route('recipes.index')->with('success', '新增成功');
+        return redirect()->route('recipes.index')->with('success', '配方新增成功！');
     }
 
-    // 顯示單一配方詳情
+
+
     public function show(Recipe $recipe)
     {
-        $this->authorizeOwner($recipe);
         return view('recipes.show', compact('recipe'));
     }
 
-    // 顯示編輯配方表單
     public function edit(Recipe $recipe)
     {
         $this->authorizeOwner($recipe);
         return view('recipes.edit', compact('recipe'));
     }
 
-    // 更新配方資料與圖片
     public function update(Request $request, Recipe $recipe)
     {
         $this->authorizeOwner($recipe);
@@ -75,12 +71,10 @@ class RecipeController extends Controller
         $recipe->description = $validatedData['description'];
 
         if ($request->hasFile('image')) {
-            // 刪除舊圖片
             if ($recipe->image_path && Storage::disk('public')->exists($recipe->image_path)) {
                 Storage::disk('public')->delete($recipe->image_path);
             }
 
-            // 儲存新圖片
             $path = $request->file('image')->store('recipes', 'public');
             $recipe->image_path = $path;
         }
@@ -90,7 +84,6 @@ class RecipeController extends Controller
         return redirect()->route('recipes.index')->with('success', '配方已成功更新！');
     }
 
-    // 刪除配方與圖片檔案
     public function destroy(Recipe $recipe)
     {
         $this->authorizeOwner($recipe);
@@ -104,11 +97,38 @@ class RecipeController extends Controller
         return redirect()->route('recipes.index')->with('success', '刪除成功');
     }
 
-    // 檢查是否為配方擁有者，無權限則 403
     protected function authorizeOwner(Recipe $recipe)
     {
         if ($recipe->user_id !== Auth::id()) {
             abort(403, '無權限');
         }
     }
+
+    public function publicIndex(Request $request)
+    {
+        $query = Recipe::query();
+
+        if ($search = $request->input('search')) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        $recipes = $query->latest()->paginate(6);
+
+        return view('home', compact('recipes', 'search'));
+    }
+
+    public function dashboard(Request $request)
+    {
+        $query = Recipe::query();
+
+        if ($search = $request->input('search')) {
+            $query->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+        }
+
+        $recipes = $query->latest()->paginate(6);
+
+        return view('dashboard', compact('recipes'));
+    }
+
 }

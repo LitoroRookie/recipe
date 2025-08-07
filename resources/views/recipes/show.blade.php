@@ -3,29 +3,19 @@
 @section('title', $recipe->title)
 
 @section('content')
-    <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow">
-        <h1 class="text-3xl font-bold text-green-800 mb-4">{{ $recipe->title }}</h1>
+    <div class="mb-6">
+        <a href="{{ route('recipes.index') }}" class="text-green-600 hover:underline">← 返回配方列表</a>
+    </div>
+
+    <div class="bg-white p-6 rounded shadow">
+        <h1 class="text-2xl font-bold text-green-900">{{ $recipe->title }}</h1>
 
         @if ($recipe->image_path)
-            <img src="{{ asset('storage/' . $recipe->image_path) }}" alt="{{ $recipe->title }}" class="mb-6 rounded shadow max-w-full h-auto">
+            <img src="{{ Storage::url($recipe->image_path) }}" alt="配方圖片" class="mt-4 w-full max-w-lg rounded">
         @endif
 
-        <div class="prose mb-6">
-             <p>{!! nl2br(e($recipe->description)) !!}</p>
-        </div>
-
-        <div class="flex justify-between items-center">
-            <a href="{{ route('recipes.index') }}" class="text-green-600 hover:underline">← 返回配方列表</a>
-
-            <div class="space-x-4">
-                <a href="{{ route('recipes.edit', $recipe) }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">編輯配方</a>
-
-                <form action="{{ route('recipes.destroy', $recipe) }}" method="POST" class="inline" onsubmit="return confirm('確定要刪除此配方嗎？');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">刪除配方</button>
-                </form>
-            </div>
+        <div class="mt-6 prose max-w-none">
+            {!! nl2br(e($recipe->description)) !!}
         </div>
     </div>
 @endsection

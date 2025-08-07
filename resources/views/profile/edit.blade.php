@@ -3,9 +3,7 @@
 @section('title', '編輯個人資料')
 
 @section('content')
-    <a href="{{ route('dashboard') }}" class="text-gray-600 hover:underline self-center">
-                    ← 返回儀表板
-                </a>
+   <a href="{{ url()->previous() }}" class="text-green-600 hover:underline">← 返回上一頁</a>
     <h2 class="font-semibold text-xl text-green-800 mb-6">個人資料</h2>
 
     <div class="space-y-6">

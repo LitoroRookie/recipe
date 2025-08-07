@@ -4,10 +4,8 @@
 
 @section('content')
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-green-900">🌿 我的植物魔法配方 🌿</h1>
-        <a href="{{ route('dashboard') }}" class="text-gray-600 hover:underline self-center">
-                ← 返回儀表板
-            </a>
+        <h1 class="text-2xl font-bold text-green-900"> 我的植物魔法配方 </h1>
+        <a href="{{ session('return_to', route('dashboard')) }}" class="text-green-600 hover:underline">← 返回上一頁</a>
         <a href="{{ route('recipes.create') }}"
            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
             ➕ 新增配方
@@ -25,33 +23,32 @@
     @else
         <div class="space-y-6">
             @foreach ($recipes as $recipe)
-                <div class="p-6 bg-white/80 rounded-xl shadow hover:shadow-lg transition relative">
-                    {{-- 有圖片時，名稱在圖片上方 --}}
+                <div class="p-4 border rounded shadow hover:shadow-md transition">
+                    <h2 class="text-xl font-bold text-green-800">
+                        <a href="{{ route('recipes.show', $recipe->id) }}">{{ $recipe->title }}</a>
+                    </h2>
+
                     @if ($recipe->image_path)
-                        <h2 class="text-xl font-semibold text-green-800 mb-2">{{ $recipe->title }}</h2>
-                        <img src="{{ asset('storage/' . $recipe->image_path) }}"
-                             alt="配方圖片"
-                             class="w-full h-48 object-cover rounded mb-4 transform hover:scale-105 transition-transform duration-300">
-                    @else
-                        {{-- 無圖片時直接顯示名稱 --}}
-                        <h2 class="text-xl font-semibold text-green-800 mb-4">{{ $recipe->title }}</h2>
+                        <img src="{{ Storage::url($recipe->image_path) }}" alt="配方圖片" class="mt-2 w-full max-w-md rounded">
                     @endif
 
-                   
+                    <p class="text-gray-600 mt-2">{{ Str::limit(strip_tags($recipe->description), 100) }}</p>
 
-                    {{-- 操作按鈕 --}}
-                    <div class="mt-4 flex gap-4">
-                        <a href="{{ route('recipes.show', $recipe) }}"
-                           class="text-blue-600 hover:underline">查看</a>
-                        <a href="{{ route('recipes.edit', $recipe) }}"
-                           class="text-yellow-600 hover:underline">編輯</a>
-                        <form action="{{ route('recipes.destroy', $recipe) }}"
-                              method="POST"
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <a href="{{ route('recipes.show', $recipe->id) }}"
+                           class="text-sm px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200">
+                            查看詳細
+                        </a>
+                        <a href="{{ route('recipes.edit', $recipe->id) }}"
+                           class="text-sm px-3 py-1 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200">
+                            編輯
+                        </a>
+                        <form action="{{ route('recipes.destroy', $recipe->id) }}" method="POST"
                               onsubmit="return confirm('確定要刪除這個配方嗎？')">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
-                                    class="px-3 py-1 border border-red-500 text-red-500 rounded hover:bg-red-500 hover:text-white transition">
+                                    class="text-sm px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200">
                                 刪除
                             </button>
                         </form>
@@ -60,7 +57,6 @@
             @endforeach
         </div>
 
-        {{-- 分頁控制（如有使用 paginate） --}}
         <div class="mt-6">
             {{ $recipes->links() }}
         </div>
